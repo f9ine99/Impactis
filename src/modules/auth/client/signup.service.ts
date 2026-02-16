@@ -13,6 +13,9 @@ export type SignupFormPayload = {
     industry_tags: string[]
 }
 
+const AUTH_CALLBACK_PATH = '/auth/callback'
+const UPDATE_PASSWORD_PATH = '/auth/update-password'
+
 type SignupMetadata = {
     full_name: string
     role: SignupRole | null
@@ -24,6 +27,10 @@ type SignupMetadata = {
 
 function isSignupRole(value: unknown): value is SignupRole {
     return typeof value === 'string' && SIGNUP_ROLES.includes(value as SignupRole)
+}
+
+function normalizeBaseUrl(value: string): string {
+    return value.trim().replace(/\/+$/, '')
 }
 
 export function getSignupRoleFromSearchParams(searchParams: URLSearchParams): SignupRole | null {
@@ -44,8 +51,31 @@ export function buildSignupMetadata(formData: SignupFormPayload): SignupMetadata
     }
 }
 
+export function getAuthRedirectBaseUrl(origin: string): string {
+    const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!configuredSiteUrl) {
+        return normalizeBaseUrl(origin)
+    }
+
+    const normalizedConfiguredSiteUrl = normalizeBaseUrl(configuredSiteUrl)
+    if (!normalizedConfiguredSiteUrl) {
+        return normalizeBaseUrl(origin)
+    }
+
+    try {
+        return new URL(normalizedConfiguredSiteUrl).origin
+    } catch {
+        return normalizedConfiguredSiteUrl
+    }
+}
+
 export function getSignupEmailRedirectUrl(origin: string): string {
-    return `${origin}/auth/callback`
+    return `${getAuthRedirectBaseUrl(origin)}${AUTH_CALLBACK_PATH}`
+}
+
+export function getResetPasswordEmailRedirectUrl(origin: string): string {
+    const nextPath = encodeURIComponent(UPDATE_PASSWORD_PATH)
+    return `${getAuthRedirectBaseUrl(origin)}${AUTH_CALLBACK_PATH}?next=${nextPath}`
 }
 
 export function getPostSignupRedirectPath(): string {

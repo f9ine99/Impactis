@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getResetPasswordEmailRedirectUrl } from '@/modules/auth'
 import TurnstileWidget from '@/components/auth/TurnstileWidget'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -28,7 +29,7 @@ export default function ResetPasswordPage() {
 
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+                redirectTo: getResetPasswordEmailRedirectUrl(window.location.origin),
                 captchaToken,
             })
 

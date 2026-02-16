@@ -1,7 +1,9 @@
 export { mapLoginErrorMessage, resolvePostLoginRedirect } from './client/login.service'
 export {
     buildSignupMetadata,
+    getAuthRedirectBaseUrl,
     getPostSignupRedirectPath,
+    getResetPasswordEmailRedirectUrl,
     getSignupEmailRedirectUrl,
     getSignupRoleFromSearchParams,
     SIGNUP_ROLES,
