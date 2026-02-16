@@ -40,11 +40,11 @@ export default function Hero() {
                         ))}
                     </span>
                     <br />
-                    <span aria-hidden="true" className="text-transparent bg-clip-text bg-gradient-to-br from-[#0B3D2E] via-[#0B3D2E] to-[#10B981] drop-shadow-sm">
+                    <span aria-hidden="true" className="hero-impact-word drop-shadow-sm">
                         {heroLineTwo.split('').map((letter, index) => (
                             <span
                                 key={`line-two-${index}`}
-                                className="hero-letter-reveal"
+                                className="hero-letter-reveal hero-impact-letter"
                                 style={{ animationDelay: `${(heroLineOne.length + 1 + index) * letterDelayMs}ms` }}
                             >
                                 {letter}
