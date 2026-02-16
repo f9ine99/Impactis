@@ -40,7 +40,6 @@ function normalizeText(value: unknown): string | null {
 }
 
 type UserMetadata = {
-    role?: unknown
     full_name?: unknown
     company?: unknown
 }
@@ -49,16 +48,12 @@ function getUserMetadata(user: User): UserMetadata {
     return (user.user_metadata ?? {}) as UserMetadata
 }
 
-export function getRoleFromAuthUser(user: User): AppRole | null {
-    return normalizeRole(getUserMetadata(user).role)
-}
-
 export function getProfileFallbackFromAuthUser(user: User): UserProfile {
     const metadata = getUserMetadata(user)
 
     return {
         id: user.id,
-        role: normalizeRole(metadata.role),
+        role: null,
         full_name: normalizeText(metadata.full_name),
         company: normalizeText(metadata.company),
     }
@@ -108,12 +103,8 @@ export async function getResolvedRoleForUser(
     supabase: SupabaseClient,
     user: User
 ): Promise<AppRole | null> {
-    const profileRole = await getRoleByUserId(supabase, user.id)
-    if (profileRole) {
-        return profileRole
-    }
-
-    return getRoleFromAuthUser(user)
+    // Authorization role must come from persistent profile state, not auth metadata.
+    return getRoleByUserId(supabase, user.id)
 }
 
 export async function getResolvedProfileForUser(
@@ -129,7 +120,7 @@ export async function getResolvedProfileForUser(
 
     return {
         id: profile.id,
-        role: profile.role ?? fallback.role,
+        role: profile.role,
         full_name: profile.full_name ?? fallback.full_name,
         company: profile.company ?? fallback.company,
     }

@@ -27,7 +27,7 @@ export default function LoginPage() {
             })
 
             if (error) {
-                toast.error(mapLoginErrorMessage(error.message))
+                toast.error(mapLoginErrorMessage(error))
             } else {
                 toast.success('Successfully logged in!')
                 const redirectPath = await resolvePostLoginRedirect(supabase)

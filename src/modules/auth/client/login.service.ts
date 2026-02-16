@@ -1,19 +1,29 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { AuthApiError, SupabaseClient } from '@supabase/supabase-js'
 import { getResolvedRoleForUser } from '@/modules/profiles'
 import { getDashboardPathForRole } from '../routing'
 
-export function mapLoginErrorMessage(message: string): string {
-    const normalizedMessage = message.toLowerCase()
+type LoginErrorInput = Pick<AuthApiError, 'message' | 'code'>
 
-    if (normalizedMessage.includes('email not confirmed')) {
-        return 'Email not confirmed. Please check your inbox.'
+export function mapLoginErrorMessage(error: LoginErrorInput): string {
+    const normalizedMessage = error.message.toLowerCase()
+    const normalizedCode = error.code?.toLowerCase()
+
+    if (
+        normalizedCode === 'email_not_confirmed'
+        || normalizedMessage.includes('email not confirmed')
+    ) {
+        return 'Your email is not verified yet. Please verify your account from your inbox.'
     }
 
-    if (normalizedMessage.includes('invalid login credentials')) {
-        return 'Invalid email or password. Please verify your credentials.'
+    if (
+        normalizedCode === 'invalid_credentials'
+        || normalizedMessage.includes('invalid login credentials')
+        || normalizedMessage.includes('invalid credentials')
+    ) {
+        return 'Incorrect email or password.'
     }
 
-    return message
+    return error.message
 }
 
 export async function resolvePostLoginRedirect(supabase: SupabaseClient): Promise<string> {
