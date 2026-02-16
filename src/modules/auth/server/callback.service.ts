@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getResolvedRoleForUser } from '@/modules/profiles'
-import { getOnboardingPath } from '@/modules/onboarding'
 import { getDashboardPathForRole } from '../routing'
 
 function sanitizeNextPath(nextPathParam: string | null): string | null {
@@ -33,5 +32,5 @@ export async function resolveCallbackRedirectPath(
     }
 
     const role = await getResolvedRoleForUser(supabase, user)
-    return role ? getDashboardPathForRole(role) : getOnboardingPath()
+    return getDashboardPathForRole(role)
 }

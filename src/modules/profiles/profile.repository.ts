@@ -15,6 +15,11 @@ type ProfileRow = {
     role: string | null
     full_name: string | null
     company: string | null
+    location: string | null
+    bio: string | null
+    industry_tags: string[] | null
+    avatar_url: string | null
+    is_verified: boolean | null
 }
 
 export function isAppRole(value: unknown): value is AppRole {
@@ -39,23 +44,44 @@ function normalizeText(value: unknown): string | null {
     return trimmed.length > 0 ? trimmed : null
 }
 
-type UserMetadata = {
-    full_name?: unknown
-    company?: unknown
+function normalizeTextArray(value: unknown): string[] | null {
+    if (!Array.isArray(value)) {
+        return null
+    }
+
+    const normalized = value
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+
+    return normalized.length > 0 ? Array.from(new Set(normalized)) : null
 }
 
-function getUserMetadata(user: User): UserMetadata {
-    return (user.user_metadata ?? {}) as UserMetadata
-}
-
-export function getProfileFallbackFromAuthUser(user: User): UserProfile {
-    const metadata = getUserMetadata(user)
-
+function mapRowToUserProfile(row: ProfileRow): UserProfile {
     return {
-        id: user.id,
+        id: row.id,
+        role: normalizeRole(row.role),
+        full_name: normalizeText(row.full_name),
+        company: normalizeText(row.company),
+        location: normalizeText(row.location),
+        bio: normalizeText(row.bio),
+        industry_tags: normalizeTextArray(row.industry_tags) ?? [],
+        avatar_url: normalizeText(row.avatar_url),
+        is_verified: Boolean(row.is_verified),
+    }
+}
+
+function getEmptyProfileFallback(userId: string): UserProfile {
+    return {
+        id: userId,
         role: null,
-        full_name: normalizeText(metadata.full_name),
-        company: normalizeText(metadata.company),
+        full_name: null,
+        company: null,
+        location: null,
+        bio: null,
+        industry_tags: [],
+        avatar_url: null,
+        is_verified: false,
     }
 }
 
@@ -65,38 +91,38 @@ export async function getProfileByUserId(
 ): Promise<UserProfile | null> {
     const { data, error } = await supabase
         .from('profiles')
-        .select('id, role, full_name, company')
+        .select('id, role, full_name, company, location, bio, industry_tags, avatar_url, is_verified')
         .eq('id', userId)
         .maybeSingle()
 
-    if (error || !data) {
+    if (!error && data) {
+        return mapRowToUserProfile(data as ProfileRow)
+    }
+
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_my_profile')
+    if (rpcError) {
+        console.warn(
+            `[profiles] Unable to load profile for user ${userId}. `
+            + `Select error: ${error?.code ?? 'none'} ${error?.message ?? ''}. `
+            + `RPC error: ${rpcError.code ?? 'unknown'} ${rpcError.message ?? 'unknown'}.`
+        )
         return null
     }
 
-    const row = data as ProfileRow
-    return {
-        id: row.id,
-        role: normalizeRole(row.role),
-        full_name: row.full_name ?? null,
-        company: row.company ?? null,
+    const rpcRow = Array.isArray(rpcData) ? rpcData[0] : rpcData
+    if (!rpcRow || typeof rpcRow !== 'object') {
+        return null
     }
+
+    return mapRowToUserProfile(rpcRow as ProfileRow)
 }
 
 export async function getRoleByUserId(
     supabase: SupabaseClient,
     userId: string
 ): Promise<AppRole | null> {
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle()
-
-    if (error || !data) {
-        return null
-    }
-
-    return normalizeRole((data as { role: unknown }).role)
+    const profile = await getProfileByUserId(supabase, userId)
+    return profile?.role ?? null
 }
 
 export async function getResolvedRoleForUser(
@@ -112,16 +138,10 @@ export async function getResolvedProfileForUser(
     user: User
 ): Promise<UserProfile> {
     const profile = await getProfileByUserId(supabase, user.id)
-    const fallback = getProfileFallbackFromAuthUser(user)
 
     if (!profile) {
-        return fallback
+        return getEmptyProfileFallback(user.id)
     }
 
-    return {
-        id: profile.id,
-        role: profile.role,
-        full_name: profile.full_name ?? fallback.full_name,
-        company: profile.company ?? fallback.company,
-    }
+    return profile
 }

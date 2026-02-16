@@ -32,6 +32,8 @@ export function getSignupRoleFromSearchParams(searchParams: URLSearchParams): Si
 }
 
 export function buildSignupMetadata(formData: SignupFormPayload): SignupMetadata {
+    // This metadata only seeds `public.profiles` at signup time via DB trigger.
+    // It is scrubbed from `auth.users.raw_user_meta_data` after sync.
     return {
         full_name: formData.fullName,
         role: isSignupRole(formData.role) ? formData.role : null,

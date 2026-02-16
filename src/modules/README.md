@@ -7,7 +7,6 @@ This project now uses domain modules under `src/modules`.
 - `auth`: routing rules and authentication navigation policies.
 - `dashboard`: dashboard access/session rules and per-role view services.
 - `deals`: deal repository and domain service for dashboard-facing deal insights.
-- `notifications`: role-based templates + Supabase-backed notification feed/actions.
 - `onboarding`: onboarding route and redirect target helpers.
 - `profiles`: profile data access and role normalization.
 

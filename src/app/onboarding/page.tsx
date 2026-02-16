@@ -24,8 +24,16 @@ export default async function OnboardingPage() {
             <section className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-white p-10 shadow-xl">
                 <h1 className="text-3xl font-black text-gray-900">Onboarding</h1>
                 <p className="mt-3 text-gray-600">
-                    Your account is active, but your profile setup is not complete yet. We will route you to your dashboard once onboarding is finalized.
+                    Your account is active, but your profile setup is not complete yet.
                 </p>
+                <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4">
+                    <p className="text-sm font-semibold text-amber-800">
+                        We are currently working on your dashboard experience.
+                    </p>
+                    <p className="mt-1 text-sm text-amber-700">
+                        Once your workspace is ready, you will be automatically routed there after login.
+                    </p>
+                </div>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                     <Link
                         href="/"

@@ -1,9 +1,10 @@
 import type { User } from '@supabase/supabase-js'
 import type { AppRole } from '@/modules/profiles'
-import { getOnboardingPath, isOnboardingPath } from '@/modules/onboarding'
+import { isOnboardingPath } from '@/modules/onboarding'
 import {
     getDashboardPathForRole,
     getProtectedRoleForPath,
+    isWorkspacePath,
     isAuthEntryPath,
     isPublicPath,
 } from './routing'
@@ -24,7 +25,6 @@ export function decideMiddlewareNavigation({
     role,
 }: MiddlewareContext): MiddlewareDecision {
     const publicPath = isPublicPath(pathname)
-    const onboardingPath = getOnboardingPath()
 
     if (!user && !publicPath) {
         return { type: 'redirect', destination: '/auth/login' }
@@ -35,12 +35,12 @@ export function decideMiddlewareNavigation({
     }
 
     if (!role) {
-        if (isOnboardingPath(pathname)) {
+        if (isOnboardingPath(pathname) || isWorkspacePath(pathname)) {
             return { type: 'allow' }
         }
 
         if (isAuthEntryPath(pathname) || !publicPath) {
-            return { type: 'redirect', destination: onboardingPath }
+            return { type: 'redirect', destination: getDashboardPathForRole(role) }
         }
 
         return { type: 'allow' }
