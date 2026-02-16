@@ -16,6 +16,13 @@ export function mapLoginErrorMessage(error: LoginErrorInput): string {
     }
 
     if (
+        normalizedCode === 'captcha_failed'
+        || normalizedMessage.includes('captcha')
+    ) {
+        return 'Security check failed. Please try the captcha again.'
+    }
+
+    if (
         normalizedCode === 'invalid_credentials'
         || normalizedMessage.includes('invalid login credentials')
         || normalizedMessage.includes('invalid credentials')

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import TurnstileWidget from '@/components/auth/TurnstileWidget'
 import {
     buildSignupMetadata,
     getPostSignupRedirectPath,
@@ -20,9 +21,12 @@ const roles = [
 ]
 
 const industryOptions = ['Fintech', 'Renewable Energy', 'Healthcare', 'EdTech', 'AgriTech', 'SaaS', 'Clean Water']
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '0x4AAAAAACd7X251ebzrdbGy'
 
 export default function SignupPage() {
     const [step, setStep] = useState(1)
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+    const [captchaResetSignal, setCaptchaResetSignal] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
         email: '',
@@ -61,6 +65,12 @@ export default function SignupPage() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!captchaToken) {
+            toast.error('Please complete the security check.')
+            return
+        }
+
         setIsLoading(true)
 
         try {
@@ -71,12 +81,13 @@ export default function SignupPage() {
                 options: {
                     data: metadata,
                     emailRedirectTo: getSignupEmailRedirectUrl(window.location.origin),
+                    captchaToken,
                 },
             })
 
             if (signupError) {
                 toast.error(signupError.message)
-                setIsLoading(false)
+                setCaptchaResetSignal((current) => current + 1)
                 return
             }
 
@@ -277,13 +288,21 @@ export default function SignupPage() {
 
                             <div className="flex space-x-4 pt-4">
                                 <button onClick={handleBack} className="flex-1 py-4 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition">Back</button>
-                                <button
-                                    onClick={handleSignup}
-                                    disabled={isLoading || !formData.company || !formData.location}
-                                    className="flex-[2] py-4 rounded-2xl bg-[#0B3D2E] text-white font-black text-lg hover:shadow-xl hover:shadow-green-900/40 transition disabled:opacity-50"
-                                >
-                                    {isLoading ? 'Creating Account...' : 'Complete Registration'}
-                                </button>
+                                <div className="flex-[2] space-y-4">
+                                    <TurnstileWidget
+                                        siteKey={TURNSTILE_SITE_KEY}
+                                        onTokenChange={setCaptchaToken}
+                                        resetSignal={captchaResetSignal}
+                                        className="flex justify-center"
+                                    />
+                                    <button
+                                        onClick={handleSignup}
+                                        disabled={isLoading || !formData.company || !formData.location || !captchaToken}
+                                        className="w-full py-4 rounded-2xl bg-[#0B3D2E] text-white font-black text-lg hover:shadow-xl hover:shadow-green-900/40 transition disabled:opacity-50"
+                                    >
+                                        {isLoading ? 'Creating Account...' : 'Complete Registration'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

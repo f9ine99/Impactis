@@ -2,26 +2,39 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import TurnstileWidget from '@/components/auth/TurnstileWidget'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '0x4AAAAAACd7X251ebzrdbGy'
+
 export default function ResetPasswordPage() {
     const [email, setEmail] = useState('')
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+    const [captchaResetSignal, setCaptchaResetSignal] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [isSent, setIsSent] = useState(false)
     const supabase = createClient()
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!captchaToken) {
+            toast.error('Please complete the security check.')
+            return
+        }
+
         setIsLoading(true)
 
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+                captchaToken,
             })
 
             if (error) {
                 toast.error(error.message)
+                setCaptchaResetSignal((current) => current + 1)
             } else {
                 toast.success('Reset link sent to your email!')
                 setIsSent(true)
@@ -67,9 +80,16 @@ export default function ResetPasswordPage() {
                             />
                         </div>
 
+                        <TurnstileWidget
+                            siteKey={TURNSTILE_SITE_KEY}
+                            onTokenChange={setCaptchaToken}
+                            resetSignal={captchaResetSignal}
+                            className="flex justify-center"
+                        />
+
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || !captchaToken}
                             className="w-full bg-[#0B3D2E] text-white py-3 rounded-xl font-semibold hover:bg-[#082a20] transition disabled:opacity-50"
                         >
                             {isLoading ? 'Sending link...' : 'Send Reset Link'}
