@@ -12,7 +12,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Rocket, TrendingUp, Briefcase, Check, Mail, Lock, User, Building, MapPin } from 'lucide-react'
+import { Rocket, TrendingUp, Briefcase, Check, Mail, Lock, User, Building, MapPin, Eye, EyeOff } from 'lucide-react'
 
 const roles = [
     { id: 'founder', title: 'Founder', icon: Rocket, description: 'Raising capital or seeking strategic partners.' },
@@ -28,6 +28,7 @@ export default function SignupPage() {
     const [captchaToken, setCaptchaToken] = useState<string | null>(null)
     const [captchaResetSignal, setCaptchaResetSignal] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -201,12 +202,20 @@ export default function SignupPage() {
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
-                                            type="password"
-                                            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
+                                            type={showPassword ? 'text' : 'password'}
+                                            className="w-full pl-12 pr-12 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
                                             placeholder="Minimum 6 characters"
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((current) => !current)}
+                                            className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
