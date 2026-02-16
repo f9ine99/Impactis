@@ -3,7 +3,6 @@ import type { AppRole } from '@/modules/profiles'
 import { isOnboardingPath } from '@/modules/onboarding'
 import {
     getDashboardPathForRole,
-    getProtectedRoleForPath,
     isWorkspacePath,
     isAuthEntryPath,
     isPublicPath,
@@ -44,15 +43,6 @@ export function decideMiddlewareNavigation({
         }
 
         return { type: 'allow' }
-    }
-
-    const requiredRole = getProtectedRoleForPath(pathname)
-    if (requiredRole && role !== requiredRole) {
-        return {
-            type: 'redirect',
-            destination: getDashboardPathForRole(role),
-            unauthorized: true,
-        }
     }
 
     if (isOnboardingPath(pathname)) {
