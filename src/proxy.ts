@@ -16,11 +16,6 @@ export async function proxy(request: NextRequest) {
 
     if (decision.type === 'redirect') {
         url.pathname = decision.destination
-        if (decision.unauthorized) {
-            url.searchParams.set('error', 'unauthorized')
-        } else {
-            url.searchParams.delete('error')
-        }
         return NextResponse.redirect(url)
     }
 

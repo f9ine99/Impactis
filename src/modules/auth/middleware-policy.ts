@@ -16,7 +16,7 @@ type MiddlewareContext = {
 
 export type MiddlewareDecision =
     | { type: 'allow' }
-    | { type: 'redirect'; destination: string; unauthorized?: boolean }
+    | { type: 'redirect'; destination: string }
 
 export function decideMiddlewareNavigation({
     pathname,

@@ -15,7 +15,7 @@ const AUTH_ENTRY_PATHS = new Set(['/auth/login', '/auth/signup'])
 const WORKSPACE_PATH = '/workspace'
 
 export function isPublicPath(pathname: string): boolean {
-    return PUBLIC_PATHS.has(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api')
+    return PUBLIC_PATHS.has(pathname) || pathname.startsWith('/_next')
 }
 
 export function isAuthEntryPath(pathname: string): boolean {

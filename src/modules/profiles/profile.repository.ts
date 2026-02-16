@@ -99,6 +99,14 @@ export async function getProfileByUserId(
         return mapRowToUserProfile(data as ProfileRow)
     }
 
+    const {
+        data: { user: currentUser },
+    } = await supabase.auth.getUser()
+
+    if (!currentUser || currentUser.id !== userId) {
+        return null
+    }
+
     const { data: rpcData, error: rpcError } = await supabase.rpc('get_my_profile')
     if (rpcError) {
         console.warn(
