@@ -234,12 +234,12 @@ export default function SignupPage() {
 
                     {/* Step 3: Profile Details */}
                     {step === 3 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 sm:space-y-8">
                             <div className="text-center">
-                                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Complete your profile</h2>
-                                <p className="mt-2 text-gray-500 font-medium tracking-tight">Help us tailor your experience.</p>
+                                <h2 className="text-2xl font-black text-gray-900 tracking-tight sm:text-3xl">Complete your profile</h2>
+                                <p className="mt-2 text-sm font-medium tracking-tight text-gray-500 sm:text-base">Help us tailor your experience.</p>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
                                 <div>
                                     <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Organization</label>
                                     <div className="relative">
@@ -275,7 +275,7 @@ export default function SignupPage() {
                                         <button
                                             key={tag}
                                             onClick={() => toggleTag(tag)}
-                                            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${formData.industry_tags.includes(tag) ? 'bg-[#0B3D2E] text-white shadow-lg shadow-green-900/20' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                            className={`px-3 py-2 rounded-full text-xs font-bold transition-all sm:px-4 sm:text-sm ${formData.industry_tags.includes(tag) ? 'bg-[#0B3D2E] text-white shadow-lg shadow-green-900/20' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {tag}
@@ -295,19 +295,26 @@ export default function SignupPage() {
                                 />
                             </div>
 
-                            <div className="flex space-x-4 pt-4">
-                                <button onClick={handleBack} className="flex-1 py-4 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition">Back</button>
-                                <div className="flex-[2] space-y-4">
-                                    <TurnstileWidget
-                                        siteKey={TURNSTILE_SITE_KEY}
-                                        onTokenChange={setCaptchaToken}
-                                        resetSignal={captchaResetSignal}
-                                        className="flex justify-center"
-                                    />
+                            <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-start sm:pt-4">
+                                <button
+                                    onClick={handleBack}
+                                    className="w-full rounded-2xl border border-gray-200 py-4 font-bold text-gray-500 transition hover:bg-gray-50 sm:flex-1"
+                                >
+                                    Back
+                                </button>
+                                <div className="w-full space-y-4 sm:flex-[2]">
+                                    <div className="-mx-2 overflow-x-auto px-2">
+                                        <TurnstileWidget
+                                            siteKey={TURNSTILE_SITE_KEY}
+                                            onTokenChange={setCaptchaToken}
+                                            resetSignal={captchaResetSignal}
+                                            className="flex justify-center"
+                                        />
+                                    </div>
                                     <button
                                         onClick={handleSignup}
                                         disabled={isLoading || !formData.company || !formData.location || !captchaToken}
-                                        className="w-full py-4 rounded-2xl bg-[#0B3D2E] text-white font-black text-lg hover:shadow-xl hover:shadow-green-900/40 transition disabled:opacity-50"
+                                        className="w-full rounded-2xl bg-[#0B3D2E] py-4 text-base font-black text-white transition hover:shadow-xl hover:shadow-green-900/40 disabled:opacity-50 sm:text-lg"
                                     >
                                         {isLoading ? 'Creating Account...' : 'Complete Registration'}
                                     </button>
