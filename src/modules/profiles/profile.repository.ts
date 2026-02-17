@@ -73,3 +73,35 @@ export async function getResolvedProfileForUser(
 
     return profile
 }
+
+export async function updateProfileForUser(
+    supabase: SupabaseClient,
+    user: User,
+    input: {
+        fullName?: string | null
+        location?: string | null
+        bio?: string | null
+    }
+): Promise<UserProfile> {
+    const fullName = normalizeText(input.fullName ?? null)
+    const location = normalizeText(input.location ?? null)
+    const bio = normalizeText(input.bio ?? null)
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            full_name: fullName,
+            location,
+            bio,
+            updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+        .select('id, full_name, location, bio, avatar_url')
+        .single()
+
+    if (error) {
+        throw new Error(error.message)
+    }
+
+    return mapRowToUserProfile(data as ProfileRow)
+}

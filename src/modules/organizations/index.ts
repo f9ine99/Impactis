@@ -1,18 +1,31 @@
 export {
+    assertOrganizationCapabilityForUser,
     createOrganizationWithOwner,
+    evaluateOrganizationCapability,
+    evaluateOrganizationCapabilityForUser,
+    getOrganizationVerificationByOrgId,
+    getOrganizationVerificationStatusByOrgId,
     getPrimaryOrganizationMembershipByUserId,
     getPrimaryOrganizationMembershipForUser,
     hasOrganizationMembershipForUser,
+    listOrganizationsWithVerification,
+    setOrganizationVerificationStatusByOrgId,
     mapAppRoleToOrganizationType,
     parseIndustryTags,
+    updateMyOrganizationSettings,
 } from './organization.repository'
 export type {
+    OrganizationCapability,
+    OrganizationCapabilityGateReason,
+    OrganizationCapabilityGateResult,
     CreateOrganizationInput,
     Organization,
     OrganizationLifecycleStatus,
     OrganizationMemberRole,
     OrganizationMembership,
     OrganizationType,
+    OrganizationVerification,
+    OrganizationVerificationOverview,
     OrganizationVerificationStatus,
 } from './types'
 export { ORGANIZATION_MEMBER_ROLES, ORGANIZATION_TYPES } from './types'
