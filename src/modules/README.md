@@ -5,8 +5,9 @@ This project now uses domain modules under `src/modules`.
 ## Current modules
 
 - `auth`: routing rules and authentication navigation policies.
+- `organizations`: org identity, membership, and org provisioning APIs.
 - `onboarding`: onboarding route and redirect target helpers.
-- `profiles`: profile data access and role normalization.
+- `profiles`: person identity data access.
 
 ## Conventions
 

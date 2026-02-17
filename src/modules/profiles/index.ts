@@ -1,2 +1,2 @@
 export * from './profile.repository'
-export type { AppRole, UserProfile } from './types'
+export type { UserProfile } from './types'

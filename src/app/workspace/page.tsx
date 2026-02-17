@@ -1,6 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getOnboardingPath } from '@/modules/onboarding'
+import { getPrimaryOrganizationMembershipForUser } from '@/modules/organizations'
 import { getResolvedProfileForUser } from '@/modules/profiles'
+
+function toTitleCase(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1)
+}
 
 export default async function WorkspacePage() {
     const supabase = await createClient()
@@ -12,11 +18,20 @@ export default async function WorkspacePage() {
         redirect('/auth/login')
     }
 
-    const profile = await getResolvedProfileForUser(supabase, user)
+    const [profile, membership] = await Promise.all([
+        getResolvedProfileForUser(supabase, user),
+        getPrimaryOrganizationMembershipForUser(supabase, user),
+    ])
+
+    if (!membership) {
+        redirect(getOnboardingPath())
+    }
+
     const firstName = profile.full_name?.trim().split(/\s+/)[0] ?? 'there'
-    const company = profile.company
-    const workspaceLabel = profile.role ? `${profile.role} Workspace` : 'Workspace'
-    const roleLabel = profile.role ?? 'pending'
+    const workspaceLabel = `${toTitleCase(membership.organization.type)} Workspace`
+    const roleLabel = membership.organization.type
+    const company = membership.organization.name
+    const membershipLabel = membership.member_role
 
     return (
         <main className="min-h-screen bg-gray-50 px-4 py-20">
@@ -25,19 +40,20 @@ export default async function WorkspacePage() {
                     {workspaceLabel}
                 </p>
                 <h1 className="mt-4 text-3xl font-black text-gray-900">
-                    Hi {firstName}, your dashboard is under construction.
+                    Dear {firstName}, we are building your dashboard.
                 </h1>
                 <p className="mt-3 text-gray-600">
-                    We are actively building your workspace experience and preparing the next feature release.
+                    Your workspace is under construction and we are preparing the next release for your team.
+                </p>
+                <p className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                    Organization: {company}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-gray-700">
                     Role: <span className="uppercase tracking-wide text-[#0B3D2E]">{roleLabel}</span>
                 </p>
-                {company ? (
-                    <p className="mt-2 text-sm font-semibold text-[#0B3D2E]/80">
-                        Organization: {company}
-                    </p>
-                ) : null}
+                <p className="mt-2 text-sm font-semibold text-gray-700">
+                    Membership: <span className="uppercase tracking-wide text-[#0B3D2E]">{membershipLabel}</span>
+                </p>
                 <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
                     <p className="text-sm font-bold text-gray-900">Coming next</p>
                     <ul className="mt-3 space-y-2 text-sm text-gray-700">

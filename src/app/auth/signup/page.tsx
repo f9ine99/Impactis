@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TurnstileWidget from '@/components/auth/TurnstileWidget'
 import {
@@ -12,7 +12,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Rocket, TrendingUp, Briefcase, Check, Mail, Lock, User, Building, MapPin, Eye, EyeOff } from 'lucide-react'
+import { Rocket, TrendingUp, Briefcase, Check, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 
 const roles = [
     { id: 'founder', title: 'Founder', icon: Rocket, description: 'Raising capital or seeking strategic partners.' },
@@ -20,11 +20,10 @@ const roles = [
     { id: 'advisor', title: 'Advisor', icon: Briefcase, description: 'Providing expert professional advisory services.' },
 ]
 
-const industryOptions = ['Fintech', 'Renewable Energy', 'Healthcare', 'EdTech', 'AgriTech', 'SaaS', 'Clean Water']
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '0x4AAAAAACd7X251ebzrdbGy'
 
 export default function SignupPage() {
-    const [step, setStep] = useState(1)
+    const [step, setStep] = useState<1 | 2>(1)
     const [captchaToken, setCaptchaToken] = useState<string | null>(null)
     const [captchaResetSignal, setCaptchaResetSignal] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
@@ -34,10 +33,6 @@ export default function SignupPage() {
         password: '',
         fullName: '',
         role: '',
-        company: '',
-        location: '',
-        bio: '',
-        industry_tags: [] as string[]
     })
 
     const router = useRouter()
@@ -47,25 +42,19 @@ export default function SignupPage() {
         const searchParams = new URLSearchParams(window.location.search)
         const roleFromSearch = getSignupRoleFromSearchParams(searchParams)
         if (roleFromSearch) {
-            setFormData(prev => ({ ...prev, role: roleFromSearch }))
-            setStep(2) // Jump to account details if role is pre-selected
+            setFormData((prev) => ({ ...prev, role: roleFromSearch }))
+            setStep(2)
         }
     }, [])
 
-    const handleNext = () => setStep(step + 1)
-    const handleBack = () => setStep(step - 1)
-
-    const toggleTag = (tag: string) => {
-        setFormData(prev => ({
-            ...prev,
-            industry_tags: prev.industry_tags.includes(tag)
-                ? prev.industry_tags.filter(t => t !== tag)
-                : [...prev.industry_tags, tag]
-        }))
-    }
-
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!formData.role) {
+            toast.error('Please select your role first.')
+            setStep(1)
+            return
+        }
 
         if (!captchaToken) {
             toast.error('Please complete the security check.')
@@ -75,7 +64,11 @@ export default function SignupPage() {
         setIsLoading(true)
 
         try {
-            const metadata = buildSignupMetadata(formData)
+            const metadata = buildSignupMetadata({
+                fullName: formData.fullName,
+                role: formData.role,
+            })
+
             const { data, error: signupError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -103,34 +96,41 @@ export default function SignupPage() {
         }
     }
 
+    const isCreateDisabled =
+        isLoading
+        || !formData.fullName.trim()
+        || !formData.email.trim()
+        || formData.password.length < 6
+        || !captchaToken
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
             <div className="max-w-xl w-full">
-                {/* Brand Header */}
                 <div className="text-center mb-10">
                     <Link href="/" className="text-4xl font-black text-[#0B3D2E] tracking-tighter">
                         Impactis
                     </Link>
                 </div>
 
-                {/* Step Progress */}
                 <div className="mb-12 flex justify-between items-center px-4">
-                    {[1, 2, 3].map((num) => (
+                    {[1, 2].map((num) => (
                         <div key={num} className="flex items-center flex-1 last:flex-none">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 transition-all ${step >= num ? 'bg-[#0B3D2E] text-white border-[#0B3D2E]' : 'bg-white text-gray-400 border-gray-200'
-                                }`}>
+                            <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 transition-all ${
+                                    step >= num ? 'bg-[#0B3D2E] text-white border-[#0B3D2E]' : 'bg-white text-gray-400 border-gray-200'
+                                }`}
+                            >
                                 {step > num ? <Check className="w-5 h-5" /> : num}
                             </div>
-                            {num < 3 && (
+                            {num < 2 ? (
                                 <div className={`flex-1 h-0.5 mx-4 ${step > num ? 'bg-[#0B3D2E]' : 'bg-gray-200'}`} />
-                            )}
+                            ) : null}
                         </div>
                     ))}
                 </div>
 
                 <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 p-8 md:p-12 border border-gray-100">
-                    {/* Step 1: Role Selection */}
-                    {step === 1 && (
+                    {step === 1 ? (
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="text-center">
                                 <h2 className="text-3xl font-black text-gray-900 tracking-tight">How will you participate?</h2>
@@ -140,16 +140,23 @@ export default function SignupPage() {
                                 {roles.map((role) => (
                                     <button
                                         key={role.id}
+                                        type="button"
                                         onClick={() => {
-                                            setFormData({ ...formData, role: role.id })
-                                            handleNext()
+                                            setFormData((prev) => ({ ...prev, role: role.id }))
+                                            setStep(2)
                                         }}
-                                        className={`p-6 rounded-3xl border-2 text-left transition-all group ${formData.role === role.id ? 'border-[#0B3D2E] bg-green-50' : 'border-gray-100 hover:border-gray-200'
-                                            }`}
+                                        className={`p-6 rounded-3xl border-2 text-left transition-all group ${
+                                            formData.role === role.id ? 'border-[#0B3D2E] bg-green-50' : 'border-gray-100 hover:border-gray-200'
+                                        }`}
                                     >
                                         <div className="flex items-center space-x-6">
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${formData.role === role.id ? 'bg-[#0B3D2E] text-white' : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'
-                                                }`}>
+                                            <div
+                                                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                                                    formData.role === role.id
+                                                        ? 'bg-[#0B3D2E] text-white'
+                                                        : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'
+                                                }`}
+                                            >
                                                 <role.icon className="w-7 h-7" />
                                             </div>
                                             <div>
@@ -161,15 +168,16 @@ export default function SignupPage() {
                                 ))}
                             </div>
                         </div>
-                    )}
-
-                    {/* Step 2: Account Details */}
-                    {step === 2 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                    ) : (
+                        <form onSubmit={handleSignup} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                             <div className="text-center">
                                 <h2 className="text-3xl font-black text-gray-900 tracking-tight">Create your account</h2>
-                                <p className="mt-2 text-gray-500 font-medium tracking-tight">You selected <span className="text-[#0B3D2E] font-bold capitalize">{formData.role}</span></p>
+                                <p className="mt-2 text-gray-500 font-medium tracking-tight">
+                                    You selected{' '}
+                                    <span className="text-[#0B3D2E] font-bold capitalize">{formData.role}</span>
+                                </p>
                             </div>
+
                             <div className="space-y-6">
                                 <div>
                                     <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Full Name</label>
@@ -180,10 +188,11 @@ export default function SignupPage() {
                                             className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
                                             placeholder="John Doe"
                                             value={formData.fullName}
-                                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                            onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
                                         />
                                     </div>
                                 </div>
+
                                 <div>
                                     <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Email Address</label>
                                     <div className="relative">
@@ -193,10 +202,11 @@ export default function SignupPage() {
                                             className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
                                             placeholder="john@example.com"
                                             value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                                         />
                                     </div>
                                 </div>
+
                                 <div>
                                     <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Password</label>
                                     <div className="relative">
@@ -206,7 +216,7 @@ export default function SignupPage() {
                                             className="w-full pl-12 pr-12 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
                                             placeholder="Minimum 6 characters"
                                             value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
                                         />
                                         <button
                                             type="button"
@@ -219,112 +229,40 @@ export default function SignupPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex space-x-4 pt-4">
-                                <button onClick={handleBack} className="flex-1 py-4 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition">Back</button>
+
+                            <TurnstileWidget
+                                siteKey={TURNSTILE_SITE_KEY}
+                                onTokenChange={setCaptchaToken}
+                                resetSignal={captchaResetSignal}
+                                className="flex justify-center"
+                            />
+
+                            <div className="flex space-x-4 pt-2">
                                 <button
-                                    disabled={!formData.fullName || !formData.email || formData.password.length < 6}
-                                    onClick={handleNext}
-                                    className="flex-[2] py-4 rounded-2xl bg-[#0B3D2E] text-white font-black text-lg hover:shadow-xl hover:shadow-green-900/20 transition disabled:opacity-50"
-                                >
-                                    Next: Profile Info
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Profile Details */}
-                    {step === 3 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 sm:space-y-8">
-                            <div className="text-center">
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight sm:text-3xl">Complete your profile</h2>
-                                <p className="mt-2 text-sm font-medium tracking-tight text-gray-500 sm:text-base">Help us tailor your experience.</p>
-                            </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
-                                <div>
-                                    <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Organization</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
-                                            placeholder="Company Name"
-                                            value={formData.company}
-                                            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Location</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium"
-                                            placeholder="Addis Ababa, ET"
-                                            value={formData.location}
-                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-4 px-1">Industry Focus</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {industryOptions.map(tag => (
-                                        <button
-                                            key={tag}
-                                            onClick={() => toggleTag(tag)}
-                                            className={`px-3 py-2 rounded-full text-xs font-bold transition-all sm:px-4 sm:text-sm ${formData.industry_tags.includes(tag) ? 'bg-[#0B3D2E] text-white shadow-lg shadow-green-900/20' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            {tag}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-2 px-1">Professional Bio</label>
-                                <textarea
-                                    className="w-full px-5 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 focus:ring-4 focus:ring-green-500/10 focus:border-[#0B3D2E] outline-none transition-all font-medium resize-none"
-                                    rows={3}
-                                    placeholder="Tell us about your background..."
-                                    value={formData.bio}
-                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-start sm:pt-4">
-                                <button
-                                    onClick={handleBack}
-                                    className="w-full rounded-2xl border border-gray-200 py-4 font-bold text-gray-500 transition hover:bg-gray-50 sm:flex-1"
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="flex-1 py-4 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition"
                                 >
                                     Back
                                 </button>
-                                <div className="w-full space-y-4 sm:flex-[2]">
-                                    <div className="-mx-2 overflow-x-auto px-2">
-                                        <TurnstileWidget
-                                            siteKey={TURNSTILE_SITE_KEY}
-                                            onTokenChange={setCaptchaToken}
-                                            resetSignal={captchaResetSignal}
-                                            className="flex justify-center"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleSignup}
-                                        disabled={isLoading || !formData.company || !formData.location || !captchaToken}
-                                        className="w-full rounded-2xl bg-[#0B3D2E] py-4 text-base font-black text-white transition hover:shadow-xl hover:shadow-green-900/40 disabled:opacity-50 sm:text-lg"
-                                    >
-                                        {isLoading ? 'Creating Account...' : 'Complete Registration'}
-                                    </button>
-                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isCreateDisabled}
+                                    className="flex-[2] py-4 rounded-2xl bg-[#0B3D2E] text-white font-black text-lg hover:shadow-xl hover:shadow-green-900/20 transition disabled:opacity-50"
+                                >
+                                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     )}
 
                     <div className="mt-10 text-center">
-                        <p className="text-gray-400 font-medium">Already part of the network? <Link href="/auth/login" className="text-[#0B3D2E] font-bold hover:underline">Sign In</Link></p>
+                        <p className="text-gray-400 font-medium">
+                            Already part of the network?{' '}
+                            <Link href="/auth/login" className="text-[#0B3D2E] font-bold hover:underline">
+                                Sign In
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

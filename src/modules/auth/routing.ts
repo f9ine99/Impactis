@@ -1,5 +1,3 @@
-import type { AppRole } from '@/modules/profiles'
-
 const PUBLIC_PATHS = new Set([
     '/',
     '/auth/login',
@@ -13,6 +11,7 @@ const PUBLIC_PATHS = new Set([
 
 const AUTH_ENTRY_PATHS = new Set(['/auth/login', '/auth/signup'])
 const WORKSPACE_PATH = '/workspace'
+const ONBOARDING_PATH = '/onboarding'
 
 export function isPublicPath(pathname: string): boolean {
     return PUBLIC_PATHS.has(pathname) || pathname.startsWith('/_next')
@@ -22,11 +21,19 @@ export function isAuthEntryPath(pathname: string): boolean {
     return AUTH_ENTRY_PATHS.has(pathname)
 }
 
-export function getDashboardPathForRole(_role: AppRole | null | undefined): string {
-    void _role
+export function getWorkspacePath(): string {
     return WORKSPACE_PATH
 }
 
 export function isWorkspacePath(pathname: string): boolean {
     return pathname === WORKSPACE_PATH
+}
+
+export function getPostAuthRedirectPath(hasOrganizationMembership: boolean): string {
+    return hasOrganizationMembership ? WORKSPACE_PATH : ONBOARDING_PATH
+}
+
+export function getDashboardPathForRole(_role: unknown): string {
+    void _role
+    return WORKSPACE_PATH
 }

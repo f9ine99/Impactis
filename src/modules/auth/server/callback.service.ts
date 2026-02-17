@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getResolvedRoleForUser } from '@/modules/profiles'
-import { getDashboardPathForRole } from '../routing'
+import { hasOrganizationMembershipForUser } from '@/modules/organizations'
+import { getPostAuthRedirectPath } from '../routing'
 
 function sanitizeNextPath(nextPathParam: string | null): string | null {
     if (!nextPathParam) {
@@ -31,6 +31,6 @@ export async function resolveCallbackRedirectPath(
         return '/'
     }
 
-    const role = await getResolvedRoleForUser(supabase, user)
-    return getDashboardPathForRole(role)
+    const hasOrganizationMembership = await hasOrganizationMembershipForUser(supabase, user)
+    return getPostAuthRedirectPath(hasOrganizationMembership)
 }

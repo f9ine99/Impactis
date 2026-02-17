@@ -1,6 +1,6 @@
 import type { AuthApiError, SupabaseClient } from '@supabase/supabase-js'
-import { getResolvedRoleForUser } from '@/modules/profiles'
-import { getDashboardPathForRole } from '../routing'
+import { hasOrganizationMembershipForUser } from '@/modules/organizations'
+import { getPostAuthRedirectPath } from '../routing'
 
 type LoginErrorInput = Pick<AuthApiError, 'message' | 'code'>
 
@@ -42,6 +42,6 @@ export async function resolvePostLoginRedirect(supabase: SupabaseClient): Promis
         return '/'
     }
 
-    const role = await getResolvedRoleForUser(supabase, user)
-    return getDashboardPathForRole(role)
+    const hasOrganizationMembership = await hasOrganizationMembershipForUser(supabase, user)
+    return getPostAuthRedirectPath(hasOrganizationMembership)
 }

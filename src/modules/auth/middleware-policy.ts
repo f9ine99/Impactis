@@ -1,8 +1,7 @@
 import type { User } from '@supabase/supabase-js'
-import type { AppRole } from '@/modules/profiles'
 import { isOnboardingPath } from '@/modules/onboarding'
 import {
-    getDashboardPathForRole,
+    getPostAuthRedirectPath,
     isWorkspacePath,
     isAuthEntryPath,
     isPublicPath,
@@ -11,7 +10,7 @@ import {
 type MiddlewareContext = {
     pathname: string
     user: User | null
-    role: AppRole | null
+    hasOrganizationMembership: boolean
 }
 
 export type MiddlewareDecision =
@@ -21,7 +20,7 @@ export type MiddlewareDecision =
 export function decideMiddlewareNavigation({
     pathname,
     user,
-    role,
+    hasOrganizationMembership,
 }: MiddlewareContext): MiddlewareDecision {
     const publicPath = isPublicPath(pathname)
 
@@ -33,24 +32,24 @@ export function decideMiddlewareNavigation({
         return { type: 'allow' }
     }
 
-    if (!role) {
-        if (isOnboardingPath(pathname) || isWorkspacePath(pathname)) {
+    if (!hasOrganizationMembership) {
+        if (isOnboardingPath(pathname)) {
             return { type: 'allow' }
         }
 
-        if (isAuthEntryPath(pathname) || !publicPath) {
-            return { type: 'redirect', destination: getDashboardPathForRole(role) }
+        if (isWorkspacePath(pathname) || isAuthEntryPath(pathname) || !publicPath) {
+            return { type: 'redirect', destination: getPostAuthRedirectPath(false) }
         }
 
         return { type: 'allow' }
     }
 
     if (isOnboardingPath(pathname)) {
-        return { type: 'redirect', destination: getDashboardPathForRole(role) }
+        return { type: 'redirect', destination: getPostAuthRedirectPath(true) }
     }
 
     if (isAuthEntryPath(pathname)) {
-        return { type: 'redirect', destination: getDashboardPathForRole(role) }
+        return { type: 'redirect', destination: getPostAuthRedirectPath(true) }
     }
 
     return { type: 'allow' }

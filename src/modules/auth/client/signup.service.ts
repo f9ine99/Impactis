@@ -1,16 +1,10 @@
-import type { AppRole } from '@/modules/profiles'
-
-export type SignupRole = Extract<AppRole, 'founder' | 'investor' | 'advisor'>
+export type SignupRole = 'founder' | 'investor' | 'advisor'
 
 export const SIGNUP_ROLES: SignupRole[] = ['founder', 'investor', 'advisor']
 
 export type SignupFormPayload = {
     fullName: string
     role: string
-    company: string
-    location: string
-    bio: string
-    industry_tags: string[]
 }
 
 const AUTH_CALLBACK_PATH = '/auth/callback'
@@ -18,15 +12,27 @@ const UPDATE_PASSWORD_PATH = '/auth/update-password'
 
 type SignupMetadata = {
     full_name: string
-    role: SignupRole | null
-    company: string
-    location: string
-    bio: string
-    industry_tags: string[]
+    intended_org_type: 'startup' | 'investor' | 'advisor' | null
 }
 
 function isSignupRole(value: unknown): value is SignupRole {
     return typeof value === 'string' && SIGNUP_ROLES.includes(value as SignupRole)
+}
+
+function getIntendedOrgType(role: SignupRole | null): SignupMetadata['intended_org_type'] {
+    if (role === 'founder') {
+        return 'startup'
+    }
+
+    if (role === 'investor') {
+        return 'investor'
+    }
+
+    if (role === 'advisor') {
+        return 'advisor'
+    }
+
+    return null
 }
 
 function normalizeBaseUrl(value: string): string {
@@ -39,15 +45,13 @@ export function getSignupRoleFromSearchParams(searchParams: URLSearchParams): Si
 }
 
 export function buildSignupMetadata(formData: SignupFormPayload): SignupMetadata {
+    const role = isSignupRole(formData.role) ? formData.role : null
+
     // This metadata only seeds `public.profiles` at signup time via DB trigger.
     // It is scrubbed from `auth.users.raw_user_meta_data` after sync.
     return {
         full_name: formData.fullName,
-        role: isSignupRole(formData.role) ? formData.role : null,
-        company: formData.company,
-        location: formData.location,
-        bio: formData.bio,
-        industry_tags: formData.industry_tags,
+        intended_org_type: getIntendedOrgType(role),
     }
 }
 

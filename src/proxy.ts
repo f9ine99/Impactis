@@ -1,17 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { decideMiddlewareNavigation } from '@/modules/auth'
-import { getResolvedRoleForUser } from '@/modules/profiles'
+import { hasOrganizationMembershipForUser } from '@/modules/organizations'
 
 export async function proxy(request: NextRequest) {
     const { supabaseResponse, user, supabase } = await updateSession(request)
 
     const url = request.nextUrl.clone()
-    const role = user ? await getResolvedRoleForUser(supabase, user) : null
+    const hasOrganizationMembership = user ? await hasOrganizationMembershipForUser(supabase, user) : false
     const decision = decideMiddlewareNavigation({
         pathname: url.pathname,
         user,
-        role,
+        hasOrganizationMembership,
     })
 
     if (decision.type === 'redirect') {

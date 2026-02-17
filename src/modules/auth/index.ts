@@ -12,4 +12,10 @@ export type { SignupFormPayload, SignupRole } from './client/signup.service'
 export { decideMiddlewareNavigation } from './middleware-policy'
 export type { MiddlewareDecision } from './middleware-policy'
 export { resolveCallbackRedirectPath } from './server/callback.service'
-export { getDashboardPathForRole, isAuthEntryPath, isPublicPath } from './routing'
+export {
+    getDashboardPathForRole,
+    getPostAuthRedirectPath,
+    getWorkspacePath,
+    isAuthEntryPath,
+    isPublicPath,
+} from './routing'
