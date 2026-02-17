@@ -181,6 +181,56 @@ body {
   color: inherit;
 }
 
+/* Workspace theme overrides for light dashboard mode */
+.workspace-theme-light .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+.workspace-theme-light .bg-slate-950\/90 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.workspace-theme-light .bg-slate-900 {
+  background-color: #f1f5f9 !important;
+}
+
+.workspace-theme-light .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.workspace-theme-light .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+
+.workspace-theme-light .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+.workspace-theme-light .text-slate-100,
+.workspace-theme-light .text-white {
+  color: #0f172a !important;
+}
+
+.workspace-theme-light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+.workspace-theme-light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.workspace-theme-light .text-slate-400 {
+  color: #475569 !important;
+}
+
+.workspace-theme-light .text-slate-500 {
+  color: #64748b !important;
+}
+
+.workspace-theme-light .shadow-2xl {
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08) !important;
+}
+
 @supports ((-webkit-background-clip: text) and (-webkit-text-fill-color: transparent)) {
   .hero-impact-letter {
     background-image: linear-gradient(135deg, #0B3D2E 0%, #0B3D2E 70%, #10B981 100%);
