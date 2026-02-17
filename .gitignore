@@ -47,6 +47,7 @@ next-env.d.ts
 *.swo
 
 # supabase local state
+supabase/
 supabase/.temp/
 supabase/.branches/
 supabase/.cache/

@@ -254,6 +254,7 @@ function DashboardMetricCard(input: {
 function StartupEngagementSection(input: {
     advisorDirectory: AdvisorDirectoryEntry[]
     outgoingRequests: EngagementRequest[]
+    accentActionClass: string
 }) {
     const openAdvisorRequestIds = new Set(
         input.outgoingRequests
@@ -314,7 +315,7 @@ function StartupEngagementSection(input: {
                                                     <input type="hidden" name="advisorOrgId" value={advisor.id} />
                                                     <button
                                                         type="submit"
-                                                        className={`rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] ${accentActionClass}`}
+                                                        className={`rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] ${input.accentActionClass}`}
                                                     >
                                                         Request
                                                     </button>
@@ -671,6 +672,7 @@ export default async function WorkspacePage({
                             <StartupEngagementSection
                                 advisorDirectory={advisorDirectory}
                                 outgoingRequests={engagementRequests.filter((request) => request.startup_org_id === membership.org_id)}
+                                accentActionClass={accentActionClass}
                             />
                         ) : null}
 
