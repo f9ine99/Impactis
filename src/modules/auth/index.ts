@@ -13,9 +13,11 @@ export { decideMiddlewareNavigation } from './middleware-policy'
 export type { MiddlewareDecision } from './middleware-policy'
 export { resolveCallbackRedirectPath } from './server/callback.service'
 export {
+    getAdminPath,
     getDashboardPathForRole,
     getPostAuthRedirectPath,
     getWorkspacePath,
+    isAdminPath,
     isAuthEntryPath,
     isPublicPath,
 } from './routing'

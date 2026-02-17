@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { decideMiddlewareNavigation } from '@/modules/auth'
+import { isPlatformAdminUser } from '@/modules/admin'
 import { hasOrganizationMembershipForUser } from '@/modules/organizations'
 
 export async function proxy(request: NextRequest) {
@@ -8,10 +9,12 @@ export async function proxy(request: NextRequest) {
 
     const url = request.nextUrl.clone()
     const hasOrganizationMembership = user ? await hasOrganizationMembershipForUser(supabase, user) : false
+    const isPlatformAdmin = user ? isPlatformAdminUser(user) : false
     const decision = decideMiddlewareNavigation({
         pathname: url.pathname,
         user,
         hasOrganizationMembership,
+        isPlatformAdmin,
     })
 
     if (decision.type === 'redirect') {
