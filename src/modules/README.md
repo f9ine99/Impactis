@@ -5,8 +5,6 @@ This project now uses domain modules under `src/modules`.
 ## Current modules
 
 - `auth`: routing rules and authentication navigation policies.
-- `dashboard`: workspace access/session rules.
-- `deals`: deal repository and domain service for dashboard-facing deal insights.
 - `onboarding`: onboarding route and redirect target helpers.
 - `profiles`: profile data access and role normalization.
 
